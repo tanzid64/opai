@@ -16,6 +16,15 @@ interface ModalProps {
   className?: string;
 }
 
+/*
+* Globar reusable modal
+* Trigger stands for open modal
+* Content stands for content within the modal
+* title -> modal title
+* description -> modal description
+* Need to pass props values to use this modal.
+*/
+
 export const Modal: FC<ModalProps> = ({
   trigger,
   children,
