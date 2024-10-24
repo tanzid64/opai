@@ -48,3 +48,153 @@ export async function verifyAccessToWorkspace(workspaceId: string) {
     };
   }
 }
+
+export async function getWorkspaceFolders(workSpaceId: string) {
+  try {
+    const isFolders = await db.folder.findMany({
+      where: {
+        workSpaceId,
+      },
+      include: {
+        _count: {
+          select: {
+            videos: true,
+          },
+        },
+      },
+    });
+    if (isFolders && isFolders.length > 0) {
+      return {
+        status: 200,
+        data: isFolders,
+      };
+    }
+    return {
+      status: 404,
+      message: "Folders not found",
+      data: [],
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      data: [],
+    };
+  }
+}
+
+export async function getAllUserVideos(workSpaceId: string) {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404, message: "User not found" };
+    const videos = await db.video.findMany({
+      where: {
+        OR: [
+          {
+            workSpaceId,
+          },
+          {
+            folderId: workSpaceId,
+          },
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        source: true,
+        processing: true,
+        Folder: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        User: {
+          select: {
+            firstname: true,
+            lastname: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+    if (videos && videos.length > 0) {
+      return {
+        status: 200,
+        data: videos,
+      };
+    }
+    return {
+      status: 404,
+      message: "Videos not found",
+      data: [],
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      data: [],
+    };
+  }
+}
+
+export async function getWorkSpaces() {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404, message: "User not found" };
+    const workspaces = await db.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        subscription: {
+          select: {
+            plan: true,
+          },
+        },
+        workspace: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
+        members: {
+          select: {
+            WorkSpace: {
+              select: {
+                id: true,
+                name: true,
+                type: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (workspaces) {
+      return {
+        status: 200,
+        data: workspaces,
+      };
+    }
+    return {
+      status: 404,
+      message: "Workspaces not found",
+      data: [],
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      data: [],
+    };
+  }
+}

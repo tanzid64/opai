@@ -5,12 +5,12 @@ import { currentUser } from "@clerk/nextjs/server";
 import { Type } from "@prisma/client";
 
 /*
-* 1 -> Get user from clerk provider
-* 2 -> Check if user exist in our database
-* 3 -> If the user exist in our database, then return user information
-* 4 -> else create the user in our database
-* 5 -> return user information
-*/
+ * 1 -> Get user from clerk provider
+ * 2 -> Check if user exist in our database
+ * 3 -> If the user exist in our database, then return user information
+ * 4 -> else create the user in our database
+ * 5 -> return user information
+ */
 export async function onAuthenticatedUser() {
   try {
     // get logged in user information from clerk
@@ -65,7 +65,6 @@ export async function onAuthenticatedUser() {
       status: 201,
       user: newUser,
     };
-    
   } catch (error) {
     console.log(error);
     return {
@@ -74,3 +73,29 @@ export async function onAuthenticatedUser() {
     };
   }
 }
+
+export const getNotifications = async () => {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404 };
+    const notifications = await db.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        notification: true,
+        _count: {
+          select: {
+            notification: true,
+          },
+        },
+      },
+    });
+
+    if (notifications && notifications.notification.length > 0)
+      return { status: 200, data: notifications };
+    return { status: 404, data: [] };
+  } catch (error) {
+    return { status: 400, data: [] };
+  }
+};
