@@ -74,7 +74,7 @@ export async function onAuthenticatedUser() {
   }
 }
 
-export const getNotifications = async () => {
+export async function getNotifications() {
   try {
     const user = await currentUser();
     if (!user) return { status: 404 };
@@ -98,4 +98,58 @@ export const getNotifications = async () => {
   } catch (error) {
     return { status: 400, data: [] };
   }
-};
+}
+
+export async function searchUsers(query: string) {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404, message: "User not found" };
+
+    // Search for users with matching first name, last name or email
+    // and filter out the current user
+    const workspace = await db.user.findMany({
+      where: {
+        OR: [
+          // search for matching first name
+          { firstname: { contains: query } },
+          // search for matching last name
+          { lastname: { contains: query } },
+          // search for matching email
+          { email: { contains: query } },
+        ],
+        // exclude the current user
+        NOT: [
+          {
+            clerkid: user.id,
+          },
+        ],
+      },
+      // select only the necessary fields
+      select: {
+        id: true,
+        subscription: {
+          select: {
+            plan: true,
+          },
+        },
+        firstname: true,
+        lastname: true,
+        image: true,
+        email: true,
+      },
+    });
+
+    if (workspace && workspace.length > 0) {
+      return { status: 200, data: workspace };
+    }
+
+    return { status: 404, data: undefined };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      data: undefined,
+    };
+  }
+}
