@@ -1,5 +1,7 @@
 import { ThemeProvider } from "@/components/theme";
+import { ReactQueryProvider } from "@/react-query";
 import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import "./globals.css";
@@ -18,15 +20,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${manrope.className} bg-[#171717] antialiased`}>
-        <ClerkProvider>
+      <body
+        className={`${manrope.className} bg-[#171717] antialiased`}
+        suppressHydrationWarning={true}
+      >
+        <ClerkProvider
+          appearance={{
+            baseTheme: dark,
+          }}
+        >
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <ReactQueryProvider>{children}</ReactQueryProvider>
           </ThemeProvider>
         </ClerkProvider>
       </body>
