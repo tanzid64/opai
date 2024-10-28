@@ -198,3 +198,45 @@ export async function getWorkSpaces() {
     };
   }
 }
+
+export async function onCreateWorkspace(name: string){
+  try {
+    const user = await currentUser();
+    if(!user) return { status: 404, message: "User not found" };
+    const authorized = await db.user.findUnique({
+      where: {
+        clerkid: user.id
+      },
+      select: {
+        subscription: {
+          select: {
+            plan: true,
+          },
+        },
+      },
+    })
+    if(authorized?.subscription?.plan === "PRO"){
+      const workspace = await db.user.update({
+        where: {clerkid: user.id},
+        data: {
+          workspace:{
+            create:{
+              name,
+              type: "PUBLIC",
+            }
+          }
+        },
+      })
+      if(workspace) {
+        return { status: 201, data: "Workspace Created" }
+      }
+    }
+    return { status: 401, data: "Not authorized" }
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 400,
+      data: "Bad request",
+    }
+  }
+}
