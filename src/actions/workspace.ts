@@ -261,3 +261,59 @@ export async function renameFolders(folderId: string, name: string) {
     };
   }
 }
+
+export async function createFolder(workspaceId: string) {
+  try {
+    const isNewFolder = await db.workSpace.update({
+      where: {
+        id: workspaceId,
+      },
+      data: {
+        folders: {
+          create: { name: "Untitled" },
+        },
+      },
+    });
+    if (isNewFolder) {
+      return { status: 200, message: "New Folder Created" };
+    }
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 500,
+      data: "Internal server error",
+    };
+  }
+}
+
+export async function getFolderInfo(folderId: string) {
+  try {
+    const folder = await db.folder.findUnique({
+      where: {
+        id: folderId,
+      },
+      select: {
+        name: true,
+        _count: {
+          select: {
+            videos: true,
+          },
+        },
+      },
+    });
+    if (folder)
+      return {
+        status: 200,
+        data: folder,
+      };
+    return {
+      status: 400,
+      data: null,
+    };
+  } catch (error) {
+    return {
+      status: 500,
+      data: null,
+    };
+  }
+}
