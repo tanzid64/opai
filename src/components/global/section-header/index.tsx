@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 interface SectionHeaderProps {
-  children?: React.ReactNode;
+  children: React.ReactNode;
   title: string;
 }
 

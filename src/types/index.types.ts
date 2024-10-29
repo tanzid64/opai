@@ -37,7 +37,7 @@ export type FolderProps = {
   };
 };
 
-export type VideosProps = {
+export type VideosTypes = {
   status: number;
   data: {
     User: {
@@ -57,7 +57,7 @@ export type VideosProps = {
   }[];
 };
 
-export type VideoProps = {
+export type VideoTypes = {
   status: number;
   data: {
     User: {
