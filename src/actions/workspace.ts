@@ -199,13 +199,13 @@ export async function getWorkSpaces() {
   }
 }
 
-export async function onCreateWorkspace(name: string){
+export async function onCreateWorkspace(name: string) {
   try {
     const user = await currentUser();
-    if(!user) return { status: 404, message: "User not found" };
+    if (!user) return { status: 404, message: "User not found" };
     const authorized = await db.user.findUnique({
       where: {
-        clerkid: user.id
+        clerkid: user.id,
       },
       select: {
         subscription: {
@@ -214,29 +214,50 @@ export async function onCreateWorkspace(name: string){
           },
         },
       },
-    })
-    if(authorized?.subscription?.plan === "PRO"){
+    });
+    if (authorized?.subscription?.plan === "PRO") {
       const workspace = await db.user.update({
-        where: {clerkid: user.id},
+        where: { clerkid: user.id },
         data: {
-          workspace:{
-            create:{
+          workspace: {
+            create: {
               name,
               type: "PUBLIC",
-            }
-          }
+            },
+          },
         },
-      })
-      if(workspace) {
-        return { status: 201, data: "Workspace Created" }
+      });
+      if (workspace) {
+        return { status: 201, data: "Workspace Created" };
       }
     }
-    return { status: 401, data: "Not authorized" }
+    return { status: 401, data: "Not authorized" };
   } catch (error) {
     console.log(error);
     return {
       status: 400,
       data: "Bad request",
-    }
+    };
+  }
+}
+
+export async function renameFolders(folderId: string, name: string) {
+  try {
+    const folder = await db.folder.update({
+      where: {
+        id: folderId,
+      },
+      data: {
+        name,
+      },
+    });
+    if (folder) return { status: 200, data: "Folder Renamed" };
+    return { status: 404, data: "Folder not found" };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 500,
+      data: "Internal server error",
+    };
   }
 }
